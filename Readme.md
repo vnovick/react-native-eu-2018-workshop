@@ -71,7 +71,9 @@ var sharedProps = {
 
 
 
-Then run `npm start` in project directory and open your TestBed app (Android/iOS)
+Then run `npm start` in project directory and open your [TestBed app](https://docs.viromedia.com/docs/develop-with-viro)
+
+
 
 You will see this:
 
