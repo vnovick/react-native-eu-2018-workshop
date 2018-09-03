@@ -82,4 +82,20 @@ You will see this:
 At this point you are ready to start with a workshop. 
 
 
+## Step 1
 
+### Instructions
+
+> All models supplied in res/models directory
+> Standalone textures supplied in res/textures directory
+>
+> Use [ViroDocs](https://docs.viromedia.com/) if you need help or ask me
+
+- put your own ViroMedia API key in `PileBlocksGame/App.js`
+- Remove all "Initializing AR" text 
+- Load 5 different models at different positions according to coordinate system.
+- Use Different texture workflows (regular/pbr)
+- Use 2 types of models (obj, fbx)
+- Use 2 basic shapes (ViroBox, ViroSphere)
+- Use 3 types of lights and illuminate your scene with different colors
+- **Bonus**: put "Add Model" UI button (Use ViroText or ViroButton) which will add random model to the scene in random position
