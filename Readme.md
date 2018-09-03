@@ -93,9 +93,17 @@ At this point you are ready to start with a workshop.
 
 - put your own ViroMedia API key in `PileBlocksGame/App.js`
 - Remove all "Initializing AR" text 
-- Load 5 different models at different positions according to coordinate system.
-- Use Different texture workflows (regular/pbr)
-- Use 2 types of models (obj, fbx)
-- Use 2 basic shapes (ViroBox, ViroSphere)
-- Use 3 types of lights and illuminate your scene with different colors
-- **Bonus**: put "Add Model" UI button (Use ViroText or ViroButton) which will add random model to the scene in random position
+- Load different models at different positions according to coordinate system.
+- Use different types of models
+- Use various basic shapes (ViroBox, ViroSphere)
+- Use different types of lights and illuminate your scene with different colors
+- "Add Model" UI button (Use ViroText or ViroButton) which will add random model to the scene
+
+## Step 2
+
+### Instructions
+
+- Use ARPlaneSelector to load random model on selected plane
+- Create a semi transparent ViroQuad on the actual real world surface and load models on it
+- Create Score text and update it every time new model is loaded
+- Create DestroyZone Quad 3 meters down and make it several meters larger than the surface quad
