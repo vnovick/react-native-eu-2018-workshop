@@ -113,3 +113,10 @@ At this point you are ready to start with a workshop.
 ### Instructions
 - Add Physics to the game
 - When colliding with "deadZone" set game state to GAME OVER
+
+## Homework
+
+### Instructions
+
+- Add AR Portal easter egg when score reaches 1000
+- Add Fireworks when score reaches 1000

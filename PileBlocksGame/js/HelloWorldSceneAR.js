@@ -53,36 +53,42 @@ export default class HelloWorldSceneAR extends Component {
     switch (modelType) {
       case "Maya Cube":
         return (
-          <ViroNode 
+          <Viro3DObject 
             key={index}
             position={[0,1,0]}
             dragType="FixedToWorld"
             onDrag={() => {}}
-          >
-              <Viro3DObject 
-                source={require("./res/models/MayaCube/Aztec.vrx")}
-                scale={[.01,.01,.01]}
-                resources={[
-                  require('./res/models/MayaCube/FbxAztec.fbm/ROCK04L.JPG'),
-                  require('./res/models/MayaCube/FbxAztec.fbm/ROCK04LB.JPG'),
-                ]}
-                type="VRX"
-                onLoadEnd={() => this.setState({
-                  isModelLoading: false,
-                  loadingModelType: ''
-                })}
-              />
-          </ViroNode>
+            source={require("./res/models/MayaCube/Aztec.vrx")}
+            scale={[.01,.01,.01]}
+            resources={[
+              require('./res/models/MayaCube/FbxAztec.fbm/ROCK04L.JPG'),
+              require('./res/models/MayaCube/FbxAztec.fbm/ROCK04LB.JPG'),
+            ]}
+            type="VRX"
+            physicsBody={{
+              type:'Dynamic', 
+              shape:{type:'Box', params:[0.1,0.1,0.1]},
+              mass: 1,
+            }}
+            onLoadEnd={() => this.setState({
+              isModelLoading: false,
+              loadingModelType: ''
+            })}
+          />
         )
       case "Sphere":
         return (
           <ViroSphere
             key={index}
-            radius={.2}
+            radius={.05}
             position={[0, 1, 0]}
             materials={["metal"]} 
             dragType="FixedToWorld"
             onDrag={() => {}}
+            physicsBody={{
+              type:'Dynamic',
+              mass: 1,
+            }}
           />
         )
       case "Rocks":
@@ -96,9 +102,14 @@ export default class HelloWorldSceneAR extends Component {
             materials={["rock"]}
             dragType="FixedToWorld"
             onLoadEnd={() => this.setState({
-              isModelLoading: false
+              isModelLoading: false,
+              loadingModelType: ''
             })}
             onDrag={() => {}}
+            physicsBody={{
+              type:'Dynamic', 
+              mass: 1,
+            }}
           />
         )
       default:
@@ -112,6 +123,11 @@ export default class HelloWorldSceneAR extends Component {
             materials={["crystal"]} 
             dragType="FixedToWorld"
             onDrag={() => {}}
+            physicsBody={{
+              type:'Dynamic', 
+              shape:{type:'Box', params:[0.05,0.05,0.05]},
+              mass: 1,
+            }}
           />
         )
     }
@@ -148,7 +164,9 @@ export default class HelloWorldSceneAR extends Component {
 
   reset = () => {
     this.setState({
+      score: 0,
       modelMap: [],
+      foundPlane: false,
       gameState: GAME_STATES.GAME_STARTED
     })
   }
@@ -197,6 +215,14 @@ export default class HelloWorldSceneAR extends Component {
     )
   }
 
+  onCollide = () => {
+    this.setState({
+      gameState: GAME_STATES.GAME_OVER,
+      modelMap: [],
+      foundPlane: false
+    })
+  }
+
   
   getARScene(){
     switch (this.state.gameState) {
@@ -239,14 +265,18 @@ export default class HelloWorldSceneAR extends Component {
             <ViroQuad 
               key="surface"
               rotation={[-90, 0, 0]}
-              position={[0,-0.1,0]}
               materials={["collider"]}
+              physicsBody={{ type:'Static', restitution:0.3, friction: 0.3 }}
             />
             <ViroQuad 
               key="deadZone"
+              height={100}
+              width={100}
               rotation={[-90, 0, 0]}
               position={[0,-3,0]}
               materials={["deadZone"]}
+              physicsBody={{ type:'Static', restitution:0.3 }}
+              onCollision={this.onCollide}
             />
             </ViroARPlaneSelector>
           </ViroNode>
