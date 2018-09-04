@@ -107,3 +107,9 @@ At this point you are ready to start with a workshop.
 - Create a semi transparent ViroQuad on the actual real world surface and load models on it
 - Create Score text and update it every time new model is loaded
 - Create DestroyZone Quad 3 meters down and make it several meters larger than the surface quad
+
+## Step 3
+
+### Instructions
+- Add Physics to the game
+- When colliding with "deadZone" set game state to GAME OVER

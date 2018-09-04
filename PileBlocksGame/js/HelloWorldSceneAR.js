@@ -6,6 +6,8 @@ import {StyleSheet} from 'react-native';
 
 import {
   ViroARScene,
+  ViroFlexView,
+  ViroARPlaneSelector,
   ViroDirectionalLight,
   ViroSpotLight,
   ViroText,
@@ -21,11 +23,20 @@ import {
 
 
 const MODEL_TYPES = ["Maya Cube", "Sphere", "Box", "Rocks"]
+const GAME_STATES = {
+  GAME_STARTED: "GAME_STARTED",
+  IN_GAME: "IN_GAME",
+  GAME_OVER: "GAME_OVER"
+}
 
 export default class HelloWorldSceneAR extends Component {
 
   state = {
+    gameState: GAME_STATES.GAME_STARTED,
     modelMap: [],
+    score: 0,
+    loadingModelType: '',
+    isModelLoading: false,
     isTracking: false,
     initialized: false
   }
@@ -44,7 +55,7 @@ export default class HelloWorldSceneAR extends Component {
         return (
           <ViroNode 
             key={index}
-            position={[0, 0, -1]} 
+            position={[0,1,0]}
             dragType="FixedToWorld"
             onDrag={() => {}}
           >
@@ -56,13 +67,10 @@ export default class HelloWorldSceneAR extends Component {
                   require('./res/models/MayaCube/FbxAztec.fbm/ROCK04LB.JPG'),
                 ]}
                 type="VRX"
-              />
-              <ViroQuad 
-                key="floor"
-                height={.01}
-                width={.01}
-                rotation={[-90,0,0]}
-                arShadowReceiver={true}
+                onLoadEnd={() => this.setState({
+                  isModelLoading: false,
+                  loadingModelType: ''
+                })}
               />
           </ViroNode>
         )
@@ -70,9 +78,8 @@ export default class HelloWorldSceneAR extends Component {
         return (
           <ViroSphere
             key={index}
-            height={.01}
-            width={.01}
-            position={[1, 1, -1]} 
+            radius={.2}
+            position={[0, 1, 0]}
             materials={["metal"]} 
             dragType="FixedToWorld"
             onDrag={() => {}}
@@ -80,14 +87,17 @@ export default class HelloWorldSceneAR extends Component {
         )
       case "Rocks":
         return (
-          <Viro3DObject position={[0, 0 -1 ]} 
+          <Viro3DObject
             key={index}
+            position={[0, 1, 0]}
             scale={[0.1,0.1,0.1]}
             type="OBJ"
             source={require('./res/models/Rock_6_FREE/Rock_6/Rock_6.obj')}
             materials={["rock"]}
-            shadowCastingBitMask={2}
             dragType="FixedToWorld"
+            onLoadEnd={() => this.setState({
+              isModelLoading: false
+            })}
             onDrag={() => {}}
           />
         )
@@ -95,9 +105,10 @@ export default class HelloWorldSceneAR extends Component {
         return (
           <ViroBox
             key={index}
-            height={.5}
-            width={.5}
-            position={[0, 1, -1]} 
+            height={.05}
+            width={.05}
+            length={.05}
+            position={[0, 1, 0]}
             materials={["crystal"]} 
             dragType="FixedToWorld"
             onDrag={() => {}}
@@ -110,47 +121,163 @@ export default class HelloWorldSceneAR extends Component {
     const randomType = Math.floor(Math.random() * 4)
   }
 
-  getARScene(){
+  onPlaneSelected = (anchorMap) => {
+    const worldCenterPosition = [
+      anchorMap.position[0] + anchorMap.center[0],
+      anchorMap.position[1] + anchorMap.center[1],
+      anchorMap.position[2] + anchorMap.center[2]
+    ];
+    this.setState({
+      foundPlane: true, 
+      worldCenterPosition, 
+    })
+  }
+
+  loadModel = () => {
+    const loadingModelType = MODEL_TYPES[Math.floor(Math.random() * 4)]
+    this.setState({
+      isModelLoading: true,
+      loadingModelType,
+      score: this.state.score + 100,
+      modelMap: [
+        ...this.state.modelMap,
+        loadingModelType
+      ]
+    })
+  }
+
+  reset = () => {
+    this.setState({
+      modelMap: [],
+      gameState: GAME_STATES.GAME_STARTED
+    })
+  }
+
+  getHUDControl() {
     return (
-      <ViroNode>
-        <ViroText text="Load Model" onClick={() => {
-          this.setState({
-            modelMap: [
-              ...this.state.modelMap,
-              MODEL_TYPES[Math.floor(Math.random() * 4)]
-            ]
-          })
-        }}
-        scale={[.5, .5, .5]} position={[0, 0, -1]} style={styles.helloWorldTextStyle} transformBehaviors={["billboardX", "billboardY"]}
-        />
-        { 
-          this.state.modelMap.map((
-            modelType, index) => this.getModelByType(modelType, index)
-          ) 
-        }
+      <ViroNode position={this.state.worldCenterPosition}>
+        <ViroNode position={[0, 1, -2]} >
+          <ViroFlexView 
+            style={{flexDirection: 'column'}} 
+            width={1} 
+            height={0.8} 
+            materials="hud_text_bg" 
+            position={[-1.5,0,0]}
+            onClick={this.reset}
+          >
+            <ViroText style={styles.helloWorldTextStyle} text="Reset Game" />
+          </ViroFlexView>
+          <ViroFlexView 
+            style={{flexDirection: 'column'}} 
+            width={1} 
+            height={0.8} 
+            materials="hud_text_bg" 
+            position={[0,0,0]}
+          >
+            <ViroText style={styles.helloWorldTextStyle} text="Score:" />
+            <ViroText style={styles.helloWorldTextStyle}  text={`${this.state.score}`} />
+          </ViroFlexView>
+          <ViroFlexView 
+            style={{flexDirection: 'column'}} 
+            width={1} 
+            height={0.8} 
+            materials="hud_text_bg" 
+            position={[1.5,0,0]} 
+            onClick={this.loadModel}
+          >
+            <ViroText 
+              text={this.state.isModelLoading ? `Loading...${this.state.loadingModelType}`: "Load Model"}
+              style={styles.helloWorldTextStyle} 
+            />
+          </ViroFlexView>
+        </ViroNode>
       </ViroNode>
+
+      
     )
+  }
+
+  
+  getARScene(){
+    switch (this.state.gameState) {
+      case GAME_STATES.GAME_STARTED: 
+        return (
+          <ViroFlexView style={{flexDirection: 'column'}} width={4} height={0.8} position={[0,0, -3 ]} transformBehaviors={["billboardX", "billboardY"]}>
+            <ViroText 
+              text="Welcome to PileBoxAR." style={styles.hud_text}/>
+            <ViroText 
+              text="Select Plane. Pile boxes on the plane."
+              style={styles.hud_text}/>
+            <ViroText text="Continue" style={styles.hud_text} onClick={() => this.setState({
+              gameState: GAME_STATES.IN_GAME
+            })}/>
+          </ViroFlexView>
+        )
+      case GAME_STATES.IN_GAME:
+        return (
+          <ViroNode>
+            { this.state.foundPlane && this.getHUDControl() }
+            <ViroARPlaneSelector onPlaneSelected={this.onPlaneSelected}
+              ref={(selectorRef) => this.arSelectorRef = selectorRef}
+            >
+              { 
+                this.state.modelMap.map((
+                  modelType, index) => (
+                    <ViroNode key={index}>
+                      { this.getModelByType(modelType, index) }
+                      <ViroQuad 
+                        arShadowReceiver={true}
+                        position={[0,0,0]}
+                        height={10}
+                        width={10}
+                        rotation={[-90, 0, 0]}
+                      />
+                    </ViroNode>
+                  )
+                ) 
+              }
+            <ViroQuad 
+              key="surface"
+              rotation={[-90, 0, 0]}
+              position={[0,-0.1,0]}
+              materials={["collider"]}
+            />
+            <ViroQuad 
+              key="deadZone"
+              rotation={[-90, 0, 0]}
+              position={[0,-3,0]}
+              materials={["deadZone"]}
+            />
+            </ViroARPlaneSelector>
+          </ViroNode>
+        )
+      case GAME_STATES.GAME_OVER:
+        return (
+          <ViroFlexView 
+            style={{flexDirection: 'column'}} 
+            width={1} 
+            height={0.8} 
+            position={[0,0, -3 ]} 
+            transformBehaviors={["billboardX", "billboardY"]}
+          >
+            <ViroText text="Game Over"/>
+            <ViroText text="reset game" onClick={this.reset}/>
+          </ViroFlexView>
+        )
+    }
   }
  
   render() {
     return (
       <ViroARScene onTrackingUpdated={this._onInitialized}>
-        <ViroDirectionalLight color="#ff1"
+        <ViroAmbientLight color="rgba(123,123,321,.5)" intensity={100}/> 
+        <ViroDirectionalLight color="#ffffff"
           direction={[0, -1, 0]}
           shadowOrthographicPosition={[0, 8, -2]}
           shadowOrthographicSize={10}
           shadowNearZ={2}
           shadowFarZ={9}
           castsShadow={true} 
-        />
-        <ViroSpotLight
-          color="#FF22FF"
-          attenuationStartDistance={2}
-          attenuationEndDistance={6}
-          position={[0, -5, 5]}
-          direction={[0 -1, 0]}
-          innerAngle={0}
-          outerAngle={45}
         />
         { 
           this.state.isTracking ? 
@@ -180,7 +307,7 @@ export default class HelloWorldSceneAR extends Component {
 var styles = StyleSheet.create({
   helloWorldTextStyle: {
     fontFamily: 'Arial',
-    fontSize: 30,
+    fontSize: 10,
     color: '#ffffff',
     textAlignVertical: 'center',
     textAlign: 'center',  
@@ -212,9 +339,15 @@ ViroMaterials.createMaterials({
     diffuseTexture: require("./res/textures/Crystal_002_COLOR.jpg"),
     normalTexture: require("./res/textures/Crystal_002_NORM.jpg")
   },
-  red: {
+  hud_text_bg: {
     lightingModel: "Constant",
-    diffuseColor: "#ff0335"
+    diffuseColor: "rgba(123,123,231,.4)"
+  },
+  collider: {
+    diffuseColor: "rgba(0,0,0,.2)"
+  },
+  deadZone: {
+    diffuseColor: "rgba(0,0,0,0)"
   },
   metal: {
     lightingModel: "Lambert",
